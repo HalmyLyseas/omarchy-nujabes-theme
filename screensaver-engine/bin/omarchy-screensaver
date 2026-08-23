@@ -1,0 +1,55 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Theme-driven screensaver -- shadows the stock omarchy-screensaver.
+#
+# Omarchy's idle service hardcodes `omarchy-launch-screensaver`, which in turn
+# runs `omarchy-screensaver` off PATH. Putting this directory ahead of
+# /usr/share/omarchy/bin (see ~/.config/hypr/hyprland.lua) is the only override
+# point; everything else in the chain is package-owned.
+#
+# The override is deliberately passive. A theme opts in by shipping a
+# `screensaver/` directory -- omarchy-theme-set copies the whole theme folder
+# into ~/.local/state/omarchy/current/theme/, artwork included. A theme that
+# ships none falls straight through to Omarchy's stock ttfx screensaver, so
+# switching away from Nujabes needs no cleanup.
+
+HERE="$(dirname "$(dirname "$(readlink -f "$0")")")"
+RENDERER="$HERE/nujabes_screensaver.py"
+THEME_ART="$HOME/.local/state/omarchy/current/theme/screensaver/title.txt"
+STOCK="/usr/share/omarchy/bin/omarchy-screensaver"
+
+# No artwork for this theme, or no renderer: let Omarchy do its thing.
+if [[ ! -r $THEME_ART || ! -r $RENDERER ]] || ! command -v python3 >/dev/null; then
+  exec "$STOCK"
+fi
+
+restore_cursor() {
+  hyprctl eval 'hl.config({ cursor = { invisible = false } })' &>/dev/null ||
+    hyprctl keyword cursor:invisible false &>/dev/null || true
+}
+
+exit_screensaver() {
+  restore_cursor
+  pkill -x ttfx 2>/dev/null
+  pkill -f '[o]rg.omarchy.screensaver' 2>/dev/null
+  exit 0
+}
+
+trap exit_screensaver SIGINT SIGTERM SIGHUP SIGQUIT
+
+printf '\033]11;rgb:00/00/00\007' # black backdrop while we set up
+
+hyprctl eval 'hl.config({ cursor = { invisible = true } })' &>/dev/null ||
+  hyprctl keyword cursor:invisible true &>/dev/null
+
+# Terminals allocate the pty at 80x24 and only resize once the compositor has
+# told the window how big it is. Measuring before that lands paints a tiny
+# canvas into the corner of a fullscreen window.
+deadline=$((SECONDS + 2))
+while ((SECONDS < deadline)) && [[ $(stty size 2>/dev/null) == "24 80" ]]; do
+  sleep 0.02
+done
+
+python3 "$RENDERER"
+
+exit_screensaver

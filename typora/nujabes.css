@@ -1,0 +1,424 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Nujabes for Typora.
+ *
+ * Every colour below is lifted straight from the theme's colors.toml, mapped
+ * once into custom properties so the rest of the file never repeats a hex.
+ * Typora's own hooks (--bg-color, --side-bar-bg-color, ...) are set from the
+ * same values, which is what themes the window chrome, sidebar and dialogs.
+ *
+ * Install:  cp typora/nujabes.css ~/.config/Typora/themes/
+ * then restart Typora and pick Nujabes under Themes.
+ */
+
+:root {
+  /* --- colors.toml ------------------------------------------------------ */
+  --nj-bg: #0d0a11;
+  --nj-bg-dark: #09070c;
+  --nj-bg-darker: #050407;
+  --nj-bg-light: #231a2b;
+  --nj-fg: #e3dcda;
+  --nj-fg-dark: #7d747a;
+  --nj-fg-light: #c9c0bd;
+  --nj-fg-bright: #fdf7f7;
+  --nj-accent: #b26ac6;
+  --nj-selection: #3d2456;
+  --nj-muted: #6b5268;
+  --nj-red: #c56e6f;
+  --nj-yellow: #e0c25a;
+  --nj-orange: #e88b2c;
+  --nj-green: #9aa06b;
+  --nj-cyan: #7fa8b0;
+  --nj-blue: #6d4fd0;
+  --nj-magenta: #dc7fcc;
+  --nj-bright-red: #dd8189;
+  --nj-bright-yellow: #f2e06a;
+  --nj-bright-green: #b6bb85;
+  --nj-bright-cyan: #9cc3ca;
+  --nj-bright-blue: #8f74e8;
+  --nj-bright-magenta: #e79ad8;
+
+  /* --- Typora's contract ------------------------------------------------ */
+  --bg-color: var(--nj-bg);
+  --text-color: var(--nj-fg);
+  --side-bar-bg-color: var(--nj-bg-dark);
+  --window-border: 1px solid var(--nj-bg-light);
+
+  --select-text-bg-color: var(--nj-selection);
+  --select-text-font-color: var(--nj-fg-bright);
+  --search-select-bg-color: var(--nj-accent);
+  --search-select-text-color: var(--nj-bg-darker);
+
+  --control-text-color: var(--nj-fg-dark);
+  --control-text-hover-color: var(--nj-fg-light);
+  --item-hover-bg-color: var(--nj-selection);
+  --item-hover-text-color: var(--nj-fg-bright);
+
+  --active-file-bg-color: var(--nj-bg-light);
+  --active-file-text-color: var(--nj-fg-bright);
+  --active-file-border-color: var(--nj-accent);
+
+  --primary-color: var(--nj-accent);
+  --primary-btn-border-color: var(--nj-accent);
+  --primary-btn-text-color: var(--nj-bg-darker);
+  --rawblock-edit-panel-bd: var(--nj-bg-light);
+
+  --md-char-color: var(--nj-muted);
+  --meta-content-color: var(--nj-fg-dark);
+  --heading-char-color: var(--nj-muted);
+
+  --monospace: "JetBrainsMono Nerd Font", "JetBrains Mono", ui-monospace,
+    SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+  background: var(--nj-bg);
+  color: var(--nj-fg);
+  fill: currentColor;
+}
+
+body {
+  font-family: "Inter", "Open Sans", "Segoe UI", Helvetica, Arial,
+    "Segoe UI Emoji", sans-serif;
+  line-height: 1.65;
+}
+
+#write {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px 30px 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+  #write { max-width: 1024px; }
+}
+
+@media only screen and (min-width: 1800px) {
+  #write { max-width: 1200px; }
+}
+
+#write > ul:first-child,
+#write > ol:first-child { margin-top: 30px; }
+
+/* --- headings ----------------------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  margin-top: 1.4rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: text;
+  color: var(--nj-fg-bright);
+}
+
+h1 tt, h1 code, h2 tt, h2 code, h3 tt, h3 code,
+h4 tt, h4 code, h5 tt, h5 code, h6 tt, h6 code { font-size: inherit; }
+
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor,
+h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor {
+  text-decoration: none;
+}
+
+h1 {
+  font-size: 2.1em;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--nj-bg-light);
+  padding-bottom: 0.3em;
+}
+
+h2 {
+  font-size: 1.65em;
+  border-bottom: 1px solid var(--nj-bg-light);
+  padding-bottom: 0.25em;
+}
+
+h3 { font-size: 1.4em; color: var(--nj-fg); }
+h4 { font-size: 1.2em; color: var(--nj-fg); }
+h5 { font-size: 1em; color: var(--nj-fg-light); }
+h6 { font-size: 1em; color: var(--nj-fg-dark); }
+
+/* --- body copy ---------------------------------------------------------- */
+
+p, blockquote, ul, ol, dl, table { margin: 0.85em 0; }
+
+li > ol, li > ul { margin: 0; }
+ul, ol { padding-left: 30px; }
+ul:first-child, ol:first-child { margin-top: 0; }
+ul:last-child, ol:last-child { margin-bottom: 0; }
+li p.first { display: inline-block; }
+
+a {
+  color: var(--nj-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--nj-bright-magenta);
+  text-decoration: underline;
+}
+
+mark {
+  background-color: var(--nj-selection);
+  color: var(--nj-fg-bright);
+  border-radius: 2px;
+}
+
+del { color: var(--nj-fg-dark); }
+
+hr {
+  height: 1px;
+  margin: 1.8em 0;
+  background-color: var(--nj-bg-light);
+  border: 0 none;
+  overflow: hidden;
+  box-sizing: content-box;
+}
+
+blockquote {
+  border-left: 3px solid var(--nj-accent);
+  padding: 0 15px;
+  color: var(--nj-fg-light);
+}
+
+blockquote blockquote { padding-right: 0; }
+
+/* --- tables ------------------------------------------------------------- */
+
+table { padding: 0; word-break: initial; }
+
+table tr {
+  border: 1px solid var(--nj-bg-light);
+  margin: 0;
+  padding: 0;
+  background-color: var(--nj-bg);
+}
+
+table tr:nth-child(2n) { background-color: var(--nj-bg-dark); }
+
+thead { background-color: var(--nj-bg-dark); }
+
+table th {
+  font-weight: 600;
+  border: 1px solid var(--nj-bg-light);
+  border-bottom: 0;
+  margin: 0;
+  padding: 6px 13px;
+  color: var(--nj-fg-bright);
+}
+
+table td {
+  border: 1px solid var(--nj-bg-light);
+  margin: 0;
+  padding: 6px 13px;
+}
+
+table th:first-child, table td:first-child { margin-top: 0; }
+table th:last-child, table td:last-child { margin-bottom: 0; }
+
+/* --- code --------------------------------------------------------------- */
+
+code, tt {
+  font-family: var(--monospace);
+  background-color: var(--nj-bg-dark);
+  border: 1px solid var(--nj-bg-light);
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 0.9em;
+  color: var(--nj-orange);
+}
+
+.md-fences {
+  font-family: var(--monospace);
+  background-color: var(--nj-bg-dark);
+  border: 1px solid var(--nj-bg-light);
+  border-radius: 4px;
+  color: var(--nj-fg);
+  margin: 1em 0;
+  padding: 10px 8px 8px;
+  font-size: 0.9em;
+}
+
+.md-fences .code-tooltip,
+.code-tooltip {
+  background-color: var(--nj-bg-light);
+  border: 1px solid var(--nj-selection);
+  box-shadow: 0 1px 3px 0 rgba(5, 4, 7, 0.6);
+  color: var(--nj-fg-light);
+}
+
+.CodeMirror-lines { padding-left: 4px; }
+.CodeMirror-gutters { border-right: 1px solid var(--nj-bg-light); background: transparent; }
+.CodeMirror-linenumber { color: var(--nj-muted); }
+.CodeMirror-cursor { border-left: 2px solid var(--nj-accent) !important; }
+.cm-s-inner .CodeMirror-selected,
+.CodeMirror-selected { background: var(--nj-selection) !important; }
+.CodeMirror-activeline-background { background: rgba(35, 26, 43, 0.5); }
+
+.md-lang { color: var(--nj-muted); }
+
+#write pre.md-meta-block {
+  padding: 1rem;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: var(--nj-bg-dark);
+  border: 1px solid var(--nj-bg-light);
+  border-radius: 3px;
+  color: var(--nj-fg-dark);
+  margin-top: 0 !important;
+}
+
+/* --- markdown syntax marks --------------------------------------------- */
+
+.md-tag { color: var(--nj-muted); opacity: 1; }
+.md-image > .md-meta { border-radius: 3px; padding: 2px 0 0 4px; font-size: 0.9em; color: inherit; }
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+/* Task checkboxes. `accent-color` alone is ignored here, so the native control
+   is switched off and the box drawn by hand -- the same approach Typora's own
+   pixyll theme takes. */
+.md-task-list-item input[type="checkbox"],
+#write input[type="checkbox"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  /* Position is left to Typora, which places the box absolutely. Overriding it
+     drops the input back into flow and pushes the label onto its own line. */
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-left: -1.3em;
+  border: 1px solid var(--nj-muted);
+  border-radius: 3px;
+  background: var(--nj-bg-dark);
+  transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+}
+
+.md-task-list-item input[type="checkbox"]:hover,
+#write input[type="checkbox"]:hover { border-color: var(--nj-accent); }
+
+.md-task-list-item input[type="checkbox"]:checked,
+#write input[type="checkbox"]:checked {
+  background: var(--nj-accent);
+  border-color: var(--nj-accent);
+}
+
+/* the tick */
+.md-task-list-item input[type="checkbox"]:checked::after,
+#write input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.09rem;
+  width: 0.2rem;
+  height: 0.45rem;
+  border: solid var(--nj-bg-darker);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.md-task-list-item input[type="checkbox"]:focus,
+#write input[type="checkbox"]:focus { outline: none; box-shadow: none; }
+.md-task-list-item > input:checked + p { color: var(--nj-fg-dark); }
+.md-mathjax-midline { background: var(--nj-bg-light); }
+.mathjax-block > .code-tooltip { bottom: 0.375rem; }
+.md-toc { margin-top: 20px; padding-bottom: 20px; }
+.md-toc-content .md-toc-item { color: var(--nj-accent); }
+.md-footnote { background-color: var(--nj-bg-dark); color: var(--nj-orange); }
+
+#write > h3.md-focus:before,
+#write > h4.md-focus:before,
+#write > h5.md-focus:before,
+#write > h6.md-focus:before { left: -1.5625rem; }
+#write > h3.md-focus:before { top: 0.375rem; }
+#write > h4.md-focus:before,
+#write > h5.md-focus:before,
+#write > h6.md-focus:before { top: 0.2857rem; }
+
+/* focus mode dims everything but the current block */
+.on-focus-mode blockquote { border-left-color: rgba(178, 106, 198, 0.25); }
+
+/* --- chrome: sidebar, menus, dialogs ------------------------------------ */
+
+#write { caret-color: var(--nj-accent); }
+
+header, .context-menu, .megamenu-content, footer {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background-color: var(--nj-bg-dark);
+  color: var(--nj-fg);
+}
+
+.sidebar-tabs { border-bottom: none; }
+
+#typora-sidebar,
+.mac-seamless-mode #typora-sidebar { background-color: var(--nj-bg-dark); }
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state { visibility: visible; }
+
+.file-list-item-summary,
+.file-library-node .file-node-content { color: var(--nj-fg-dark); }
+
+#typora-quick-open {
+  border: 1px solid var(--nj-bg-light);
+  background-color: var(--nj-bg-dark);
+}
+
+#typora-quick-open-item {
+  background-color: var(--nj-bg);
+  border-color: var(--nj-bg-light);
+  border-style: solid;
+  border-width: 1px;
+}
+
+.dropdown-menu .divider { border-color: var(--nj-bg-light); opacity: 0.5; }
+#md-notification .btn { border: 0; }
+
+.ty-preferences .window-content { background-color: var(--nj-bg-dark); }
+.ty-preferences .nav-group-item.active {
+  color: var(--nj-bg-darker);
+  background: var(--nj-accent);
+}
+
+.menu-item-container a.menu-style-btn {
+  background-color: var(--nj-bg-light);
+  background-image: linear-gradient(180deg, rgba(253, 247, 247, 0.05), rgba(253, 247, 247, 0));
+}
+
+@media print {
+  html { font-size: 13px; }
+  pre { page-break-inside: avoid; word-wrap: break-word; }
+}
+
+/* --- syntax highlighting ------------------------------------------------ *
+ * Violet for structure, amber for literals -- the wallpaper's two lobes.    */
+
+.cm-s-inner .cm-comment    { color: var(--nj-muted); font-style: italic; }
+.cm-s-inner .cm-keyword    { color: var(--nj-magenta); }
+.cm-s-inner .cm-atom       { color: var(--nj-bright-blue); }
+.cm-s-inner .cm-number     { color: var(--nj-orange); }
+.cm-s-inner .cm-string     { color: var(--nj-yellow); }
+.cm-s-inner .cm-string-2   { color: var(--nj-bright-yellow); }
+.cm-s-inner .cm-def        { color: var(--nj-bright-cyan); }
+.cm-s-inner .cm-variable   { color: var(--nj-fg); }
+.cm-s-inner .cm-variable-2 { color: var(--nj-fg-light); }
+.cm-s-inner .cm-variable-3 { color: var(--nj-bright-blue); }
+.cm-s-inner .cm-property   { color: var(--nj-cyan); }
+.cm-s-inner .cm-operator   { color: var(--nj-accent); }
+.cm-s-inner .cm-builtin    { color: var(--nj-bright-magenta); }
+.cm-s-inner .cm-tag        { color: var(--nj-red); }
+.cm-s-inner .cm-attribute  { color: var(--nj-bright-yellow); }
+.cm-s-inner .cm-type       { color: var(--nj-bright-blue); }
+.cm-s-inner .cm-qualifier  { color: var(--nj-green); }
+.cm-s-inner .cm-meta       { color: var(--nj-fg-dark); }
+.cm-s-inner .cm-link       { color: var(--nj-accent); text-decoration: underline; }
+.cm-s-inner .cm-error      { color: var(--nj-bright-red); }
+.cm-s-inner .cm-header     { color: var(--nj-fg-bright); font-weight: 600; }
+.cm-s-inner .cm-quote      { color: var(--nj-fg-light); font-style: italic; }
+.cm-s-inner .cm-hr         { color: var(--nj-bg-light); }

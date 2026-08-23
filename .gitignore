@@ -1,0 +1,18 @@
+# Intermediates from assets/make-palette.py. Only the final palette.webp is
+# committed; the SVG and PNG it passes through on the way are not.
+assets/palette.svg
+assets/palette.png
+
+# Local tooling. Useful for maintaining the theme, not for installing it.
+assets/make-palette.py
+
+# Backups the screensaver installer leaves behind if it is run from in here
+*.bak.*
+
+# Editor and OS noise
+*~
+*.swp
+*.swo
+.DS_Store
+.idea/
+.vscode/
