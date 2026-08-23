@@ -48,9 +48,9 @@ omarchy theme install https://github.com/HalmyLyseas/omarchy-nujabes-theme.git
 
 Optional, and installed separately from the theme.
 
-[![The Nujabes screensaver](./assets/screensaver-poster.webp)](./assets/screensaver-sample.mp4)
+![The Nujabes screensaver](./assets/screensaver-sample.webp)
 
-_Click through for an 8-second recording._
+_An 8-second recording, downscaled from the 1440p60 original._
 
 #### Install
 

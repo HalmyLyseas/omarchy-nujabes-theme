@@ -178,6 +178,24 @@ the palette and no longer have the script, it renders grouped swatches
 (base / text / accent / normal / bright) via SVG, rasterises with `rsvg-convert`
 and encodes with `cwebp`.
 
+### The screensaver recording
+
+`assets/screensaver-sample.webp` is an **animated** WebP, not a video, and that is
+deliberate. `raw.githubusercontent.com` serves every blob in the repo as
+`application/octet-stream` under a `sandbox` CSP, so a committed `.mp4` can never
+play in the README — it only downloads. Animated WebP renders inline from plain
+`![]()` and, at 720p24, lands smaller than the 1440p60 `.mp4` did.
+
+Record at full resolution, then:
+
+```bash
+ffmpeg -i <recording>.mp4 -vf "fps=24,scale=1280:-2" \
+  -c:v libwebp_anim -q:v 55 -compression_level 5 -loop 0 -an \
+  assets/screensaver-sample.webp
+```
+
+Keep it under ~1.5 MB; it autoplays for everyone who opens the README.
+
 ---
 
 ## Tuning the screensaver

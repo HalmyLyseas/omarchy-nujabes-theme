@@ -23,9 +23,8 @@ So the montage is not mine to license, and neither is anything drawn from it:
 - `preview.png`
 - `assets/homescreen.webp`, `assets/setup.webp`, `assets/typora-theme.webp` —
   screenshots, all of which show the wallpaper
-- `screensaver/*.txt`, `assets/screensaver-poster.webp` and
-  `assets/screensaver-sample.mp4` — the braille lettering is transcoded directly
-  from the wallpaper's title
+- `screensaver/*.txt` and `assets/screensaver-sample.webp` — the braille
+  lettering is transcoded directly from the wallpaper's title
 
 These are included so the theme is usable and so its palette can be traced back
 to its source, not as a claim of ownership. No licence is granted for them, and
