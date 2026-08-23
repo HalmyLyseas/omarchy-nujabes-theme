@@ -1,0 +1,60 @@
+# Nujabes — derived from Nujabes-wallpaper-1440p.png
+#
+# The wallpaper is a two-lobe palette: a fire arc (yellow -> orange -> red)
+# and a violet arc (indigo -> orchid -> magenta -> rose), over near-black.
+# Hues 75-240 are entirely absent, so `green` is pulled from the olive
+# foliage on the left panel and `cyan` is a muted steel-teal chosen to stay
+# legible next to `blue` without inventing a color the artwork never uses.
+#
+# Keep every comment on its own line. Omawrite's colors.toml parser gives up
+# on a trailing comment after a value -- `accent = "#b26ac6"  # orchid` -- and
+# falls back to a grey that is nearly invisible on this background. Inline
+# comments are valid TOML and every other Omarchy app handles them, but none
+# of the stock themes use them, so the bug goes unnoticed.
+
+mode = "dark"
+
+# orchid, the violet smoke
+accent = "#b26ac6"
+# deep violet
+selection = "#3d2456"
+# dusty violet-grey
+muted = "#6b5268"
+
+background = "#0d0a11"
+dark_background = "#09070c"
+darker_background = "#050407"
+lighter_background = "#231a2b"
+
+# bone
+foreground = "#e3dcda"
+dark_foreground = "#7d747a"
+light_foreground = "#c9c0bd"
+# vinyl white
+bright_foreground = "#fdf7f7"
+
+red = "#c56e6f"
+yellow = "#e0c25a"
+orange = "#e88b2c"
+# olive foliage
+green = "#9aa06b"
+# not in the artwork; muted so it never fights the palette
+cyan = "#7fa8b0"
+# indigo
+blue = "#6d4fd0"
+magenta = "#dc7fcc"
+brown = "#6e4a2c"
+
+bright_red = "#dd8189"
+bright_yellow = "#f2e06a"
+bright_green = "#b6bb85"
+bright_cyan = "#9cc3ca"
+bright_blue = "#8f74e8"
+bright_magenta = "#e79ad8"
+
+# Borders: violet smoke bleeding into the amber strands, like the artwork.
+hyprland_active_border = "rgba(b26ac6ee) rgba(e88b2cee) 45deg"
+hyprland_inactive_border = "rgba(2a1f33aa)"
+
+active_border_color = "#b26ac6"
+active_tab_background = "#3d2456"

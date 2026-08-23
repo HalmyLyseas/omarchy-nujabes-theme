@@ -1,0 +1,275 @@
+# Maintaining this theme
+
+Notes for whoever edits this repo next. The README is for people installing the
+theme; this is for people changing it.
+
+Everything here was verified on Omarchy 4.0.0 / Hyprland 0.56 / Qt 6.11.
+
+---
+
+## How the pieces fit together
+
+Three separate things ship in this repo, and they reach the user by three
+different routes:
+
+| What | Lives in | How it gets installed | When |
+| --- | --- | --- | --- |
+| Palette, wallpaper, previews | repo root, `backgrounds/` | `omarchy theme install`, then `omarchy-theme-set` | on theme switch |
+| Screensaver **artwork** | `screensaver/` | copied along with the theme | on theme switch |
+| Screensaver **renderer** | `screensaver-engine/` | `./screensaver-engine/install.sh`, by hand | once, opt-in |
+| Typora stylesheet | `typora/` | `cp` by hand | once, opt-in |
+
+The key mechanism: `omarchy-theme-set` does
+
+```bash
+cp -r "$USER_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/"
+```
+
+— the *entire* theme directory, not a known list of files. That is why a theme
+can carry arbitrary payload like `screensaver/`, and why `assets/` also ends up
+in `~/.local/state/omarchy/current/theme/`. Harmless (the copy is reflinked on
+btrfs, measured at ~21 ms), just be aware nothing is filtered.
+
+The renderer decides whether to run by looking for the active theme's artwork:
+
+```bash
+THEME_ART="$HOME/.local/state/omarchy/current/theme/screensaver/title.txt"
+```
+
+Absent, it `exec`s Omarchy's stock screensaver. So the engine is installed
+system-wide but only draws for themes that ship a `screensaver/` directory —
+switching away needs no uninstall, and any other theme can opt in by adding one.
+
+---
+
+## Constraints that are not obvious
+
+### 1. `colors.toml` comments must be on their own line
+
+Omawrite parses `colors.toml` itself and **gives up on a trailing comment after
+a value**:
+
+```toml
+accent = "#b26ac6"    # orchid    <- breaks Omawrite
+```
+
+It then falls back to a grey around `#51545C`, which is nearly invisible against
+this background — every colour in the file is lost, not just the annotated one.
+Full-line comments are fine, including the block at the top.
+
+Inline comments are valid TOML and every other Omarchy consumer handles them.
+None of the 22 stock themes use them, which is why the bug is unreported.
+
+To confirm a suspicion: Omawrite repaints live on `omarchy theme set`, so open a
+document, flip between this theme and a stock one, and sample the text pixels.
+
+### 2. Anything Quickshell draws must be PNG or JPEG — never WebP
+
+Qt on Arch has no WebP image plugin:
+
+```bash
+ls /usr/lib/qt6/plugins/imageformats/     # gif, ico, jpeg, pdf, svg -- no webp
+```
+
+`libwebp-utils` does not help; it ships `cwebp`/`dwebp` only, no Qt plugin. This
+bites two files, because Quickshell renders both:
+
+- `backgrounds/*` — the desktop background
+- `preview.png` — the theme switcher tile, which `omarchy-theme-switcher`
+  merely symlinks into its cache without converting
+
+Both filename globs *accept* `.webp`, which makes it look supported. It is not:
+the switcher tile renders blank. JPEG is safe and much smaller than PNG if size
+matters (`preview.png` is 2.2 MB as PNG, ~620 KB at JPEG q92).
+
+`assets/` is free to be WebP — only GitHub renders those.
+
+### 3. The PATH override must be last, and unconditional
+
+Omarchy's screensaver chain is package-owned end to end: the shell's idle service
+hardcodes `omarchy-launch-screensaver`, which resolves `omarchy-screensaver` off
+`PATH`. There is no hook and no config knob, so shadowing that name is the only
+override point. `install.sh` appends a block to `~/.config/hypr/hyprland.lua`.
+
+Two things about that block are load-bearing:
+
+- It must be the **last** `hl.env("PATH", ...)` call in the file.
+- It must run **unconditionally**. `/usr/share/omarchy/default/hypr/envs.lua`
+  rebuilds `PATH` with `/usr/share/omarchy/bin` forced to the front on *every*
+  parse. A `if not already present` guard looks correct and silently fails on the
+  **second** `hyprctl reload`: the directory is already in the process environ,
+  the guard skips, and Omarchy's line wins.
+
+So verify after two or three reloads, never one:
+
+```bash
+for i in 1 2 3; do hyprctl reload; sleep 1; done
+hyprctl dispatch 'hl.dsp.exec_cmd([[bash -c "command -v omarchy-screensaver > /tmp/x"]])'
+cat /tmp/x    # must be the ~/.local/share/... path
+```
+
+### 4. Optional theme files
+
+All 22 stock themes ship `preview.png`, `preview-unlock.png` and `unlock.png`;
+community themes routinely ship none. Each degrades independently:
+
+| Missing | Consequence |
+| --- | --- |
+| `preview.png` | switcher falls back to the first image in `backgrounds/` |
+| `preview-unlock.png` | theme absent from `omarchy plymouth list` and the Plymouth switcher |
+| `unlock.png` | no Plymouth boot theming at all (`omarchy plymouth set by theme`) |
+
+This theme ships only `preview.png`. The other two were dropped deliberately —
+Plymouth theming is opt-in and needs root, and the two images cost 4.7 MB.
+
+Note `unlock.png` is the **Plymouth boot logo**, despite the name. It is not the
+lock screen. `omarchy-plymouth-current` identifies the active boot theme by
+`cmp -s` against each theme's copy, so it must stay byte-identical — another
+reason not to re-encode it.
+
+---
+
+## Regenerating the artwork
+
+The braille art is transcoded from the wallpaper's own title, so the lettering is
+the real thing rather than a substitute font. Both commands below were re-run
+against the committed files and reproduce them exactly.
+
+```bash
+W=backgrounds/1-nujabes.png          # 2560x1440; crops assume that size
+
+magick "$W" -crop 880x118+1145+66  +repage /tmp/nuj.png
+magick "$W" -crop 640x92+1255+196  +repage /tmp/kana.png
+
+omarchy transcode ascii /tmp/nuj.png  screensaver/title.txt --width 110 --height 10 --invert --threshold 20
+omarchy transcode ascii /tmp/kana.png screensaver/kana.txt  --width 96  --height 12 --invert --threshold 18
+```
+
+Then strip leading and trailing blank lines from each file — the transcoder pads
+to the requested height.
+
+`title.txt` needs one manual cleanup afterwards. The transcode picks up three
+smoke specks around the `S`: two detached dots off its top-right corner and one
+floating inside the lower bowl. Remove them:
+
+```python
+L = open("screensaver/title.txt", encoding="utf-8").read().split("\n")
+for row, col in ((0, 101), (1, 101), (5, 98)):     # 0-indexed
+    l = list(L[row]); l[col] = " "; L[row] = "".join(l).rstrip()
+open("screensaver/title.txt", "w", encoding="utf-8").write("\n".join(L))
+```
+
+Things learned tuning this, if you change the crops:
+
+- **Only the lettering transcodes well.** The face and the vinyl records turn to
+  mush at any width that fits a terminal — they are too finely detailed for
+  1-bit braille. Do not bother.
+- **Braille (default), not `--mode block`.** Block mode is gapless but halves the
+  vertical resolution; the letters come out chunky and the `A` deforms.
+- **Threshold matters more than width.** The title needs ~20; the katakana has
+  thinner, more distressed strokes and needs ~18 with a wider canvas.
+
+### The palette image
+
+`assets/palette.webp` is generated from `colors.toml` by `assets/make-palette.py`,
+which is **git-ignored** — it is maintainer tooling, not something an installer
+needs. That means a fresh clone cannot regenerate the image. If you have edited
+the palette and no longer have the script, it renders grouped swatches
+(base / text / accent / normal / bright) via SVG, rasterises with `rsvg-convert`
+and encodes with `cwebp`.
+
+---
+
+## Tuning the screensaver
+
+Constants at the top of `screensaver-engine/nujabes_screensaver.py`:
+
+```python
+FPS = 14.0                 # ~11% of one core at this rate
+SMOKE_WAVELENGTH = 102.0   # columns per accent -> warm -> accent band
+SMOKE_DRIFT = 0.50         # rad/s; full colour cycle = 2*pi/this, ~12.6 s
+```
+
+`SMOKE_WAVELENGTH` is deliberately close to the title's width in columns, so one
+full period spans it and both colours are on screen at once. Widen it and the
+whole word sits in one tint.
+
+Two rendering decisions worth not re-litigating:
+
+- **Vertical colour variation is kept near zero.** One braille cell is four dot
+  rows but only *one* colour, so a real vertical gradient paints the letters in
+  horizontal bands and the strokes read as sliced. The `y` term in
+  `smoke_color()` is 0.025 for that reason.
+- **The record's grooves are not dithered.** Ordered dithering dissolves the
+  concentric rings into noise; the ridge itself decides the dot. The two
+  specular arcs read from a precomputed angle table, so the per-frame cost stays
+  at roughly two lookups per subpixel.
+
+Colours come from the active theme's `colors.toml` (`accent` and `orange` for
+text; `muted`, `selection`, `bright_foreground` for the record), so the renderer
+is theme-agnostic — only the artwork is Nujabes-specific.
+
+---
+
+## Testing
+
+```bash
+omarchy theme set nujabes                    # apply
+omarchy launch screensaver force             # screensaver on demand
+./screensaver-engine/uninstall.sh            # full round trip
+./screensaver-engine/install.sh              # idempotent, safe to re-run
+```
+
+Traps that cost real time:
+
+- **`pkill -f 'org.omarchy.screensaver'` matches your own shell.** The pattern
+  appears in your command line, so `pkill -f` kills the shell running it and
+  `omarchy-launch-screensaver`'s own `pgrep -f` guard sees a false positive and
+  exits early. Use a bracket: `pkill -f '[o]rg.omarchy.screensaver'`, and keep
+  the literal string out of test command lines.
+- **Typora's process is `Typora`, capital T.** `pkill -x typora` matches nothing,
+  and re-launching just reuses the running instance — so CSS edits appear not to
+  load. Typora only reads themes at startup.
+- **Window geometry goes stale.** Hyprland retiles when other windows come and
+  go, so a screenshot crop from cached `at`/`size` silently captures the wrong
+  region. Re-read `hyprctl clients -j` on every capture, and select by `.class`,
+  not `.title` — a terminal's title often contains the filename you are matching.
+
+### Before committing screenshots
+
+Screenshots of a working desktop leak usernames, paths and IPs. Sweep with OCR
+rather than by eye:
+
+```bash
+magick assets/setup.webp -colorspace gray -resize 150% /tmp/o.png
+tesseract /tmp/o.png - --psm 6 | grep -inE "yourname|/home|192\.168"
+```
+
+`btop` is the usual offender: its `User:` column repeats the username on every
+row, and the net box shows the LAN address. Also check image metadata — GIMP
+writes `Software`/XMP tags on export by default:
+
+```bash
+magick identify -verbose <file> | grep -iE "exif|xmp|software|artist|creator"
+```
+
+---
+
+## Release checklist
+
+1. `python3 assets/make-palette.py` if `colors.toml` changed.
+2. Re-run the transcodes if the wallpaper changed, plus the `S` cleanup.
+3. OCR sweep any new screenshot; check metadata.
+4. Verify every README/NOTICE link resolves.
+5. Full dry run into a clean state:
+   ```bash
+   ./screensaver-engine/uninstall.sh
+   rm -rf ~/.config/omarchy/themes/nujabes
+   omarchy theme install <repo-url-or-local-path>
+   cd ~/.config/omarchy/themes/nujabes && ./screensaver-engine/install.sh
+   omarchy launch screensaver force
+   ```
+   Then switch to a stock theme and confirm the screensaver falls back to `ttfx`
+   rather than erroring.
+6. Update `NOTICE.md` if files were added or removed — it enumerates which paths
+   are and are not covered by the MIT licence.
