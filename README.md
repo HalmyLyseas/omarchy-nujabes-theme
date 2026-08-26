@@ -50,7 +50,7 @@ Optional, and installed separately from the theme.
 
 ![The Nujabes screensaver](./assets/screensaver-sample.webp)
 
-_An 8-second recording, downscaled from the 1440p60 original._
+_A 38-second recording, downscaled from the 1440p60 original._
 
 #### Install
 
@@ -66,6 +66,8 @@ It installs the renderer and appends a `PATH` block to
 ```bash
 ./screensaver-engine/uninstall.sh
 ```
+
+The installer also leaves a copy at `~/.local/share/omarchy-nujabes-screensaver/uninstall.sh`, so the screensaver can be removed even after the theme itself is gone.
 
 
 

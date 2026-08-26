@@ -6,8 +6,11 @@ assets/palette.png
 # Local tooling. Useful for maintaining the theme, not for installing it.
 assets/make-palette.py
 
-# Backups the screensaver installer leaves behind if it is run from in here
-*.bak.*
+# Python bytecode from importing the renderer (tests, tooling)
+__pycache__/
+
+# Local working notes (code reviews, plans); not part of the theme
+exchange/*
 
 # Editor and OS noise
 *~

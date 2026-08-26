@@ -89,7 +89,28 @@ matters (`preview.png` is 2.2 MB as PNG, ~620 KB at JPEG q92).
 Omarchy's screensaver chain is package-owned end to end: the shell's idle service
 hardcodes `omarchy-launch-screensaver`, which resolves `omarchy-screensaver` off
 `PATH`. There is no hook and no config knob, so shadowing that name is the only
-override point. `install.sh` appends a block to `~/.config/hypr/hyprland.lua`.
+override point. `install.sh` appends a block to `~/.config/hypr/hyprland.lua`,
+bracketed by sentinel comments:
+
+```lua
+-- >>> omarchy-nujabes-screensaver
+...
+-- <<< omarchy-nujabes-screensaver
+```
+
+The sentinels are the *only* coupling between install and uninstall: the
+uninstaller deletes whatever sits between them (plus the pre-sentinel legacy
+form, for old installs), so the block's wording and code are free to change.
+Re-running `install.sh` converges: an intact, last-in-file block is left
+alone; an outdated, superseded, or mangled-but-recognizable block is replaced
+with a fresh one at the end of the file; marker leftovers it cannot identify
+abort before anything is written. The uninstaller is also copied into
+`~/.local/share/omarchy-nujabes-screensaver/`, so removing the theme checkout
+never strands the override.
+
+Every config edit backs `hyprland.lua` up first (`hyprland.lua.bak.<epoch>`,
+the five newest are kept) and restores the backup automatically if the edit
+fails partway.
 
 Two things about that block are load-bearing:
 
@@ -169,6 +190,15 @@ Things learned tuning this, if you change the crops:
 - **Threshold matters more than width.** The title needs ~20; the katakana has
   thinner, more distressed strokes and needs ~18 with a wider canvas.
 
+### The small title
+
+`screensaver/title-small.txt` is different: hand-drawn half-block art (2 lines,
+33 columns), not a transcode. The renderer walks the title variants widest-first
+and draws the first one that fits, so this is what "NUJABES" looks like on a
+window under ~103 columns (a 1366px panel, or HiDPI at scale 2). Keep any
+replacement inside plain block glyphs (`█ ▄ ▀`) — the smoke sweep colors every
+non-space character.
+
 ### The palette image
 
 `assets/palette.webp` is generated from `colors.toml` by `assets/make-palette.py`,
@@ -176,7 +206,9 @@ which is **git-ignored** — it is maintainer tooling, not something an installe
 needs. That means a fresh clone cannot regenerate the image. If you have edited
 the palette and no longer have the script, it renders grouped swatches
 (base / text / accent / normal / bright) via SVG, rasterises with `rsvg-convert`
-and encodes with `cwebp`.
+and encodes with `cwebp`. The same script also syncs the `--nj-*` palette block
+in `typora/nujabes.css` from `colors.toml` — so on a clone without the script,
+a palette edit means updating that CSS block by hand too.
 
 ### The screensaver recording
 
@@ -184,17 +216,18 @@ and encodes with `cwebp`.
 deliberate. `raw.githubusercontent.com` serves every blob in the repo as
 `application/octet-stream` under a `sandbox` CSP, so a committed `.mp4` can never
 play in the README — it only downloads. Animated WebP renders inline from plain
-`![]()` and, at 720p24, lands smaller than the 1440p60 `.mp4` did.
+`![]()`, and 720 wide at 12 fps reads fine for footage this slow.
 
 Record at full resolution, then:
 
 ```bash
-ffmpeg -i <recording>.mp4 -vf "fps=24,scale=1280:-2" \
-  -c:v libwebp_anim -q:v 55 -compression_level 5 -loop 0 -an \
+ffmpeg -i <recording>.mp4 -vf "fps=12,scale=720:-2" \
+  -c:v libwebp_anim -q:v 80 -compression_level 5 -loop 0 -an \
   assets/screensaver-sample.webp
 ```
 
-Keep it under ~1.5 MB; it autoplays for everyone who opens the README.
+Keep it under ~3 MB (the 38 s clip lands at ~2.5 MB); it autoplays for
+everyone who opens the README.
 
 ---
 
@@ -203,29 +236,63 @@ Keep it under ~1.5 MB; it autoplays for everyone who opens the README.
 Constants at the top of `screensaver-engine/nujabes_screensaver.py`:
 
 ```python
-FPS = 14.0                 # ~11% of one core at this rate
+FPS = 14.0                 # ~2-3% of one core at this rate (was ~11% before
+                           # the table-driven pass; the terminal emulator
+                           # pays its own share for the escape stream)
 SMOKE_WAVELENGTH = 102.0   # columns per accent -> warm -> accent band
 SMOKE_DRIFT = 0.50         # rad/s; full colour cycle = 2*pi/this, ~12.6 s
+CLOUD_WIND = 0.42          # cloud drift; ~6 cells/s, ~35 s to cross a screen
+CLOUD_ENTRAIN = 0.30       # how strongly the record's spin carries the cloud
 ```
 
 `SMOKE_WAVELENGTH` is deliberately close to the title's width in columns, so one
 full period spans it and both colours are on screen at once. Widen it and the
 whole word sits in one tint.
 
-Two rendering decisions worth not re-litigating:
+Rendering decisions worth not re-litigating:
 
 - **Vertical colour variation is kept near zero.** One braille cell is four dot
   rows but only *one* colour, so a real vertical gradient paints the letters in
-  horizontal bands and the strokes read as sliced. The `y` term in
-  `smoke_color()` is 0.025 for that reason.
+  horizontal bands and the strokes read as sliced. The `y` term in `frame()`'s
+  smoke field is 0.025 for that reason.
 - **The record's grooves are not dithered.** Ordered dithering dissolves the
-  concentric rings into noise; the ridge itself decides the dot. The two
-  specular arcs read from a precomputed angle table, so the per-frame cost stays
-  at roughly two lookups per subpixel.
+  concentric rings into noise; the ridge itself decides the dot. Subpixels are
+  classified (label / rim / groove) once in `build_record`, so the per-frame
+  cost per subpixel is table lookups and adds — no radius math, no trig.
+- **Every rotating cue on the record is 1-fold** — one dominant sheen (the
+  opposed one stays faint), a single-lobe eccentric groove warp, one soft
+  lobe on the label. Symmetric cues (near-equal opposed sheens, a 3-lobed
+  warp) make the pattern nearly repeat every half or third turn, and the spin
+  visibly stalls or reverses as the eye latches onto the next arc — measured
+  at 8 apparent reversals per 240 frames before the change, none after.
+- **Colours come from lookup tables.** Text colors are a
+  `[brightness][sweep position]` LUT with the easing curve baked in; the record
+  reads a quantized vinyl ramp. The quantization steps (`SMOKE_UQ`, `SMOKE_KQ`,
+  `VINYL_Q`) are finer than 8-bit truecolor survives, and the coarser color
+  runs are what make `paint()`'s SGR dedup effective.
+- **The cloud is particles in a potential-flow field, not a texture.** Each
+  wisp is a few hundred braille dots advected by uniform wind plus the exact
+  flow-past-a-cylinder solution at the record (with a tangential term for its
+  spin), so it parts around the disc, rides the rotation near the rim, and
+  rejoins downstream — no trig per particle, and the deformation is physics
+  rather than animation. It draws only into empty cells, so it always sits
+  behind the lettering and the record. A wisp is emitted at the record's rim
+  (it starts half-hidden behind the disc and seeps out), wraps
+  particle-by-particle at the screen edges instead of dying there, and lives
+  `CLOUD_LAPS` screen-widths before fading so diffusion never smears it into
+  uniform haze.
+- **Focus loss arrives from Hyprland's event socket** (`.socket2.sock`), not
+  polling; a 1 Hz `hyprctl` poll remains only as the fallback when the socket
+  is unavailable, and that poll fails *toward exiting* after five consecutive
+  errors — a screensaver that stops noticing focus loss is worse than one that
+  leaves early.
 
-Colours come from the active theme's `colors.toml` (`accent` and `orange` for
-text; `muted`, `selection`, `bright_foreground` for the record), so the renderer
-is theme-agnostic — only the artwork is Nujabes-specific.
+Colours come from the active theme's `colors.toml` — the parse whitelist is
+exactly the `FALLBACK` table in the renderer (`background`,
+`bright_foreground`, `accent`, `orange`, `muted`, `selection`) — so the
+renderer is theme-agnostic; only the artwork is Nujabes-specific. A theme that
+defines colors but no `orange` gets one derived from its own
+`accent`/`bright_foreground` rather than inheriting Nujabes amber.
 
 ---
 
@@ -240,6 +307,11 @@ omarchy launch screensaver force             # screensaver on demand
 
 Traps that cost real time:
 
+- **The renderer cannot be run bare.** `python3 nujabes_screensaver.py` in a
+  working terminal exits after ~1 s: the focus watcher sees a focused window
+  whose class is not `org.omarchy.screensaver` and correctly calls that focus
+  lost. Tune through `omarchy launch screensaver force` instead — it launches
+  the dedicated window with the right class.
 - **`pkill -f 'org.omarchy.screensaver'` matches your own shell.** The pattern
   appears in your command line, so `pkill -f` kills the shell running it and
   `omarchy-launch-screensaver`'s own `pgrep -f` guard sees a false positive and
@@ -275,7 +347,9 @@ magick identify -verbose <file> | grep -iE "exif|xmp|software|artist|creator"
 
 ## Release checklist
 
-1. `python3 assets/make-palette.py` if `colors.toml` changed.
+1. `python3 assets/make-palette.py` if `colors.toml` changed — this renders
+   `assets/palette.webp` *and* syncs the `--nj-*` block in
+   `typora/nujabes.css`, which nothing else checks.
 2. Re-run the transcodes if the wallpaper changed, plus the `S` cleanup.
 3. OCR sweep any new screenshot; check metadata.
 4. Verify every README/NOTICE link resolves.
