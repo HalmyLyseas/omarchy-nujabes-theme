@@ -80,7 +80,13 @@ bites two files, because Quickshell renders both:
 
 Both filename globs *accept* `.webp`, which makes it look supported. It is not:
 the switcher tile renders blank. JPEG is safe and much smaller than PNG if size
-matters (`preview.png` is 2.2 MB as PNG, ~620 KB at JPEG q92).
+matters (`preview.png` is 2.2 MB as PNG, ~620 KB at JPEG q92; the wallpaper
+ships as JPEG q90 4:4:4 for the same reason — 1.0 MB vs 4.0 MB as PNG at
+38.9 dB PSNR).
+
+A `libqwebp.so` plugin *can* exist via the `qt6-imageformats` package — but on
+Arch that package is optional and no Omarchy component requires it, so a theme
+must not count on it. PNG or JPEG only for anything Quickshell draws.
 
 `assets/` is free to be WebP — only GitHub renders those.
 
@@ -157,7 +163,7 @@ the real thing rather than a substitute font. Both commands below were re-run
 against the committed files and reproduce them exactly.
 
 ```bash
-W=backgrounds/1-nujabes.png          # 2560x1440; crops assume that size
+W=backgrounds/1-nujabes.jpg          # 2560x1440; crops assume that size
 
 magick "$W" -crop 880x118+1145+66  +repage /tmp/nuj.png
 magick "$W" -crop 640x92+1255+196  +repage /tmp/kana.png
@@ -222,7 +228,7 @@ Record at full resolution, then:
 
 ```bash
 ffmpeg -i <recording>.mp4 -vf "fps=12,scale=720:-2" \
-  -c:v libwebp_anim -q:v 80 -compression_level 5 -loop 0 -an \
+  -c:v libwebp_anim -q:v 80pl -compression_level 5 -loop 0 -an \
   assets/screensaver-sample.webp
 ```
 
@@ -365,3 +371,31 @@ magick identify -verbose <file> | grep -iE "exif|xmp|software|artist|creator"
    rather than erroring.
 6. Update `NOTICE.md` if files were added or removed — it enumerates which paths
    are and are not covered by the MIT licence.
+
+---
+
+## Listing on omarchy.org
+
+Getting the theme onto <https://omarchy.org/themes/> is a pull request against
+`omacom-io/omarchy-site`. An automated review (omarchybot) checks the *theme
+repository*, not the diff, against the rules Omarchy enforces in code — all
+verified against `stage_installed_theme` in `bin/omarchy-theme-set` and the
+bot's comments on merged PRs:
+
+1. **No `*.lua` anywhere** and no `alacritty.toml` / `foot.ini` /
+   `ghostty.conf` / `kitty.conf` / `vscode.json`. Staging drops them from a
+   repo-installed theme (each can name a program to run) and regenerates them
+   from `colors.toml` — they work locally, then silently do nothing for
+   installers. Symlinks are dropped too.
+2. **`preview.png` present**, or the switcher shows a bare wallpaper.
+3. **Backgrounds cheap to clone**: hard flag over 4 MB *or* over
+   0.5 bytes/pixel per image; soft flags over 2.5 MB or wider than 3840px.
+   (This is why the wallpaper is a 1.0 MB JPEG.)
+4. **Shipped scripts get an informational flag** ("worth a look, not holding
+   anything up") — `screensaver-engine/` will draw one; the README's framing
+   of it as opt-in and separate from the theme is the answer.
+5. **The PR itself**: add `assets/themes/nujabes.webp` (grid tile, ~1200x675,
+   made from `preview.png`) and a `<figure class="themes__theme">` block in
+   `themes/index.html`, in alphabetical position, matching the neighbors'
+   markup exactly. One theme name and one asset filename per theme — the bot
+   flags collisions across open PRs.
