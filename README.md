@@ -28,6 +28,12 @@ cp typora/nujabes.css ~/.config/Typora/themes/
 Restart Typora, then pick **Nujabes** under *Themes*. Mind the `themes/` subdirectory, and note that Typora only reads themes at startup.
 `typora/sample.md` shows every element the stylesheet touches.
 
+To remove it later, delete the copied file — neither `omarchy theme remove` nor the screensaver uninstaller knows about it:
+
+```bash
+rm ~/.config/Typora/themes/nujabes.css
+```
+
 
 
 ## Color Palette
