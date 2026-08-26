@@ -4,6 +4,8 @@
  *
  * Every colour below is lifted straight from the theme's colors.toml, mapped
  * once into custom properties so the rest of the file never repeats a hex.
+ * Do not edit the hex values by hand: `python3 assets/make-palette.py` keeps
+ * them in sync with colors.toml (and fails on any variable it cannot map).
  * Typora's own hooks (--bg-color, --side-bar-bg-color, ...) are set from the
  * same values, which is what themes the window chrome, sidebar and dialogs.
  *
@@ -29,11 +31,9 @@
   --nj-orange: #e88b2c;
   --nj-green: #9aa06b;
   --nj-cyan: #7fa8b0;
-  --nj-blue: #6d4fd0;
   --nj-magenta: #dc7fcc;
   --nj-bright-red: #dd8189;
   --nj-bright-yellow: #f2e06a;
-  --nj-bright-green: #b6bb85;
   --nj-bright-cyan: #9cc3ca;
   --nj-bright-blue: #8f74e8;
   --nj-bright-magenta: #e79ad8;

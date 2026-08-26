@@ -16,7 +16,11 @@
 HERE="$(dirname "$(dirname "$(readlink -f "$0")")")"
 RENDERER="$HERE/nujabes_screensaver.py"
 THEME_ART="$HOME/.local/state/omarchy/current/theme/screensaver/title.txt"
-STOCK="/usr/share/omarchy/bin/omarchy-screensaver"
+# Resolved through OMARCHY_PATH like the rest of the stack, so a dev-link
+# checkout runs its own stock screensaver instead of the packaged one. It must
+# stay an absolute path: resolving `omarchy-screensaver` off PATH would find
+# this script again and exec-loop forever.
+STOCK="${OMARCHY_PATH:-/usr/share/omarchy}/bin/omarchy-screensaver"
 
 # No artwork for this theme, or no renderer: let Omarchy do its thing.
 if [[ ! -r $THEME_ART || ! -r $RENDERER ]] || ! command -v python3 >/dev/null; then
@@ -30,7 +34,7 @@ restore_cursor() {
 
 exit_screensaver() {
   restore_cursor
-  pkill -x ttfx 2>/dev/null
+  printf '\033]111\007' # give the terminal its default background back
   pkill -f '[o]rg.omarchy.screensaver' 2>/dev/null
   exit 0
 }
@@ -43,12 +47,17 @@ hyprctl eval 'hl.config({ cursor = { invisible = true } })' &>/dev/null ||
   hyprctl keyword cursor:invisible true &>/dev/null
 
 # Terminals allocate the pty at 80x24 and only resize once the compositor has
-# told the window how big it is. Measuring before that lands paints a tiny
-# canvas into the corner of a fullscreen window.
-deadline=$((SECONDS + 2))
-while ((SECONDS < deadline)) && [[ $(stty size 2>/dev/null) == "24 80" ]]; do
-  sleep 0.02
+# told the window how big it is. Measuring before that flashes a tiny canvas
+# into the corner of a fullscreen window -- only a flash, since the renderer
+# rebuilds on SIGWINCH, so this wait is cosmetic and kept cheap: `read -t` on
+# a held-open pipe sleeps without forking, and a genuinely 80x24 window pays
+# one second, not two.
+exec 9<> <(:)
+tries=0
+while ((tries++ < 20)) && [[ $(stty size 2>/dev/null) == "24 80" ]]; do
+  read -t 0.05 -u 9 || true
 done
+exec 9<&-
 
 python3 "$RENDERER"
 
