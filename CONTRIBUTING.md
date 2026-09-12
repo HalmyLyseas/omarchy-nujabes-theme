@@ -1,9 +1,30 @@
-# Maintaining this theme
+# Contributing to the Nujabes theme
 
-Notes for whoever edits this repo next. The README is for people installing the
-theme; this is for people changing it.
+The README is for people installing the theme; this document is the canonical
+contract for people changing it. `AGENTS.md` exists only as a discovery pointer
+to this file and must not contain a separate set of instructions.
 
-Everything here was verified on Omarchy 4.0.0 / Hyprland 0.56 / Qt 6.11.
+Everything here was verified on Omarchy 4.0.3-1 / Hyprland 0.56.2 / Qt 6.11.2.
+
+## Contribution contract
+
+- Keep the screensaver renderer opt-in and separately installed. A normal theme
+  install or switch must never edit user configuration or install executable
+  code outside the theme directory.
+- Preserve the installer's idempotence, configuration backups, rollback on
+  failure, and the uninstall path copied outside the theme checkout.
+- Treat real theme switches, compositor reloads, screensaver launches, and
+  uninstall/install round trips as interactive checks. Do not run disruptive
+  desktop actions without the user's explicit approval.
+- Keep generated or local coordination material out of commits. `/exchange/`
+  remains ignored so scratch reviews and handoff notes cannot be staged by
+  `git add -A`.
+- Run the non-disruptive checks in [Testing](#testing), inspect the staged diff,
+  and verify generated artwork when its source or recipe changes before
+  committing.
+- Publishing, opening an omarchy.org listing pull request, or changing a public
+  release is a manual maintainer action. Agents and automation must not perform
+  it without explicit authorization for that exact action.
 
 ---
 
@@ -164,19 +185,61 @@ weight, balanced spacing and a symmetrical `A`. The katakana still comes from
 the wallpaper so it retains the original distressed texture.
 
 ```bash
-W=backgrounds/1-nujabes.jpg          # 2560x1440; crop assumes that size
 FONT=$(fc-match -f '%{file}' 'Adwaita Sans:style=Regular')
+case "$FONT" in
+  */AdwaitaSans-Regular.ttf) ;;
+  *) printf 'Adwaita Sans Regular is required; fc-match returned %s\n' "$FONT" >&2; exit 1 ;;
+esac
 
 magick -background black -fill white -font "$FONT" -pointsize 112 -kerning 13 \
   label:NUJABES -bordercolor black -border 12x8 /tmp/nuj.png
-magick "$W" -crop 640x92+1255+196 +repage /tmp/kana.png
+omarchy transcode ascii /tmp/nuj.png screensaver/title.txt \
+  --width 104 --height 10 --invert --threshold 38
+python3 - screensaver/title.txt <<'PY'
+from pathlib import Path
+import sys
 
-omarchy transcode ascii /tmp/nuj.png  screensaver/title.txt --width 104 --height 10 --invert --threshold 38
-omarchy transcode ascii /tmp/kana.png screensaver/kana.txt  --width 96  --height 12 --invert --threshold 18
+path = Path(sys.argv[1])
+lines = [line.rstrip() for line in path.read_text(encoding="utf-8").splitlines()]
+while lines and not lines[0]:
+    lines.pop(0)
+while lines and not lines[-1]:
+    lines.pop()
+path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
 ```
 
-Then strip leading and trailing blank lines and trailing spaces from each file —
-the transcoder pads to the requested height. No manual glyph cleanup is needed.
+The normalization step strips the transcoder's leading and trailing blank lines,
+removes trailing spaces, and preserves one final newline. No manual glyph cleanup
+is needed. This recipe reproduced `screensaver/title.txt` byte-for-byte with
+Omarchy 4.0.3-1, ImageMagick 7.1.2-31, and `adwaita-fonts` 51.0-2.
+
+### Katakana
+
+The katakana remains a wallpaper crop. Its transcode is tool-version-sensitive:
+the committed file was produced under Omarchy 4.0.0, while Omarchy 4.0.3-1
+produces different output from the same parameters. Treat the committed artwork
+as canonical and regenerate it only for an intentional katakana change, retaining
+the old file for a visual diff.
+
+```bash
+W=backgrounds/1-nujabes.jpg          # 2560x1440; crop assumes that size
+magick "$W" -crop 640x92+1255+196 +repage /tmp/kana.png
+omarchy transcode ascii /tmp/kana.png screensaver/kana.txt \
+  --width 96 --height 12 --invert --threshold 18
+python3 - screensaver/kana.txt <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+lines = [line.rstrip() for line in path.read_text(encoding="utf-8").splitlines()]
+while lines and not lines[0]:
+    lines.pop(0)
+while lines and not lines[-1]:
+    lines.pop()
+path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
+```
 
 Things learned tuning this artwork:
 
@@ -296,6 +359,30 @@ defines colors but no `orange` gets one derived from its own
 
 ## Testing
 
+Run these non-disruptive checks first:
+
+```bash
+for FILE in screensaver-engine/install.sh screensaver-engine/uninstall.sh \
+  screensaver-engine/bin/omarchy-screensaver; do
+  bash -n "$FILE"
+done
+PYTHONPYCACHEPREFIX=/tmp/nujabes-pycache \
+  python3 -m py_compile screensaver-engine/nujabes_screensaver.py
+if test -f assets/make-palette.py; then
+  PYTHONPYCACHEPREFIX=/tmp/nujabes-pycache \
+    python3 -m py_compile assets/make-palette.py
+fi
+if command -v shellcheck >/dev/null; then
+  shellcheck screensaver-engine/install.sh screensaver-engine/uninstall.sh \
+    screensaver-engine/bin/omarchy-screensaver
+fi
+git diff --check
+git diff --cached --check
+```
+
+When a change affects installed or rendered behavior, perform the relevant
+interactive checks with the user's explicit approval:
+
 ```bash
 omarchy theme set nujabes                    # apply
 omarchy launch screensaver force             # screensaver on demand
@@ -348,7 +435,8 @@ magick identify -verbose <file> | grep -iE "exif|xmp|software|artist|creator"
 1. `python3 assets/make-palette.py` if `colors.toml` changed — this renders
    `assets/palette.webp` *and* syncs the `--nj-*` block in
    `typora/nujabes.css`, which nothing else checks.
-2. Re-run the title and katakana transcodes if their source artwork changed.
+2. Re-run only the title or katakana transcode whose source artwork changed,
+   then inspect the generated diff before accepting it.
 3. OCR sweep any new screenshot; check metadata.
 4. Verify every README/NOTICE link resolves.
 5. Full dry run into a clean state:

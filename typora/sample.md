@@ -37,7 +37,8 @@ Footnotes[^1] hang off the bottom of the page.
 3. Then the dust drifts up
 
 - [x] Palette derived from the wallpaper
-- [x] Screensaver artwork traced from the title
+- [x] Katakana screensaver artwork traced from the wallpaper
+- [x] Latin screensaver titles created separately
 - [ ] Track down the original artist
 
 ## Code

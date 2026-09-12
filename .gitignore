@@ -9,8 +9,8 @@ assets/make-palette.py
 # Python bytecode from importing the renderer (tests, tooling)
 __pycache__/
 
-# Local working notes (code reviews, plans); not part of the theme
-exchange/*
+# Local coordination and scratch material; never part of the theme
+/exchange/
 
 # Editor and OS noise
 *~

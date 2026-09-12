@@ -94,7 +94,9 @@ The installer also leaves a copy at `~/.local/share/omarchy-nujabes-screensaver/
 
 ## Maintaining this theme
 
-Notes for changing it rather than installing it. How the pieces fit together, constraints that are not obvious, how to regenerate the artwork, and a release checklist are in [`docs/MAINTENANCE.md`](./docs/MAINTENANCE.md).
+The contributor contract, architecture notes, non-obvious constraints, artwork
+regeneration steps, testing guidance, and release checklist are in
+[`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Licence
 
@@ -111,4 +113,5 @@ The wallpaper is my own montage, assembled in GIMP, but it is built on two piece
 
 Nujabes was the stage name of Jun Seba (1974–2010). This theme is unofficial fan work named in tribute, and is not affiliated with his estate or any rights holder in his music.
 
-The palette, the braille lettering and the screensaver artwork are all derived from the wallpaper.
+The palette and katakana screensaver artwork are derived from the wallpaper. The
+large Latin title is typeset separately, and its compact fallback is hand-drawn.

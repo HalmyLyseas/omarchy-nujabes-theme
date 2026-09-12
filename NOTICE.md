@@ -6,6 +6,9 @@ The MIT licence in [`LICENSE`](./LICENSE) applies to the parts of this
 repository I wrote:
 
 - `screensaver-engine/` — the renderer, its wrapper and its install scripts
+- `screensaver/title.txt`, `screensaver/title-small.txt`, and
+  `screensaver/tagline.txt` — typeset, hand-drawn, and text assets created for
+  this project
 - `typora/nujabes.css` and `typora/sample.md`
 - `colors.toml`, `icons.theme` and the documentation
 
@@ -19,12 +22,12 @@ pieces of existing artwork that are not mine:
 
 So the montage is not mine to license, and neither is anything drawn from it:
 
-- `backgrounds/1-nujabes.png` — the wallpaper itself
+- `backgrounds/1-nujabes.jpg` — the wallpaper itself
 - `preview.png`
 - `assets/homescreen.webp`, `assets/setup.webp`, `assets/typora-theme.webp` —
   screenshots, all of which show the wallpaper
-- `screensaver/*.txt` and `assets/screensaver-sample.webp` — the braille
-  lettering is transcoded directly from the wallpaper's title
+- `screensaver/kana.txt` and `assets/screensaver-sample.webp` — the katakana
+  artwork is transcoded directly from the wallpaper
 
 These are included so the theme is usable and so its palette can be traced back
 to its source, not as a claim of ownership. No licence is granted for them, and
