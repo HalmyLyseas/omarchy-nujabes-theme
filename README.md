@@ -56,7 +56,7 @@ Optional, and installed separately from the theme.
 
 ![The Nujabes screensaver](./assets/screensaver-sample.webp)
 
-_A 38-second recording, downscaled from the 1440p60 original._
+_A 30-second recording, downscaled from the 1440p60 original._
 
 #### Install
 

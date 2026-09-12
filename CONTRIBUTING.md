@@ -283,11 +283,11 @@ Record at full resolution, then:
 
 ```bash
 ffmpeg -i <recording>.mp4 -vf "fps=12,scale=720:-2" \
-  -c:v libwebp_anim -q:v 80pl -compression_level 5 -loop 0 -an \
+  -c:v libwebp_anim -q:v 80 -compression_level 5 -loop 0 -an \
   assets/screensaver-sample.webp
 ```
 
-Keep it under ~3 MB (the 38 s clip lands at ~2.5 MB); it autoplays for
+Keep it under ~3 MB (the current 30 s clip lands at ~2.1 MB); it autoplays for
 everyone who opens the README.
 
 ---
