@@ -158,43 +158,35 @@ reason not to re-encode it.
 
 ## Regenerating the artwork
 
-The braille art is transcoded from the wallpaper's own title, so the lettering is
-the real thing rather than a substitute font. Both commands below were re-run
-against the committed files and reproduce them exactly.
+The large title is typeset from Adwaita Sans Regular rather than extracted from
+the wallpaper. That gives all seven letters a clean baseline, consistent stroke
+weight, balanced spacing and a symmetrical `A`. The katakana still comes from
+the wallpaper so it retains the original distressed texture.
 
 ```bash
-W=backgrounds/1-nujabes.jpg          # 2560x1440; crops assume that size
+W=backgrounds/1-nujabes.jpg          # 2560x1440; crop assumes that size
+FONT=$(fc-match -f '%{file}' 'Adwaita Sans:style=Regular')
 
-magick "$W" -crop 880x118+1145+66  +repage /tmp/nuj.png
-magick "$W" -crop 640x92+1255+196  +repage /tmp/kana.png
+magick -background black -fill white -font "$FONT" -pointsize 112 -kerning 13 \
+  label:NUJABES -bordercolor black -border 12x8 /tmp/nuj.png
+magick "$W" -crop 640x92+1255+196 +repage /tmp/kana.png
 
-omarchy transcode ascii /tmp/nuj.png  screensaver/title.txt --width 110 --height 10 --invert --threshold 20
+omarchy transcode ascii /tmp/nuj.png  screensaver/title.txt --width 104 --height 10 --invert --threshold 38
 omarchy transcode ascii /tmp/kana.png screensaver/kana.txt  --width 96  --height 12 --invert --threshold 18
 ```
 
-Then strip leading and trailing blank lines from each file — the transcoder pads
-to the requested height.
+Then strip leading and trailing blank lines and trailing spaces from each file —
+the transcoder pads to the requested height. No manual glyph cleanup is needed.
 
-`title.txt` needs one manual cleanup afterwards. The transcode picks up three
-smoke specks around the `S`: two detached dots off its top-right corner and one
-floating inside the lower bowl. Remove them:
-
-```python
-L = open("screensaver/title.txt", encoding="utf-8").read().split("\n")
-for row, col in ((0, 101), (1, 101), (5, 98)):     # 0-indexed
-    l = list(L[row]); l[col] = " "; L[row] = "".join(l).rstrip()
-open("screensaver/title.txt", "w", encoding="utf-8").write("\n".join(L))
-```
-
-Things learned tuning this, if you change the crops:
+Things learned tuning this artwork:
 
 - **Only the lettering transcodes well.** The face and the vinyl records turn to
   mush at any width that fits a terminal — they are too finely detailed for
   1-bit braille. Do not bother.
 - **Braille (default), not `--mode block`.** Block mode is gapless but halves the
   vertical resolution; the letters come out chunky and the `A` deforms.
-- **Threshold matters more than width.** The title needs ~20; the katakana has
-  thinner, more distressed strokes and needs ~18 with a wider canvas.
+- **Threshold matters more than width.** The clean title needs ~38; the thinner,
+  distressed katakana needs ~18 with a wider canvas.
 
 ### The small title
 
@@ -356,7 +348,7 @@ magick identify -verbose <file> | grep -iE "exif|xmp|software|artist|creator"
 1. `python3 assets/make-palette.py` if `colors.toml` changed — this renders
    `assets/palette.webp` *and* syncs the `--nj-*` block in
    `typora/nujabes.css`, which nothing else checks.
-2. Re-run the transcodes if the wallpaper changed, plus the `S` cleanup.
+2. Re-run the title and katakana transcodes if their source artwork changed.
 3. OCR sweep any new screenshot; check metadata.
 4. Verify every README/NOTICE link resolves.
 5. Full dry run into a clean state:
