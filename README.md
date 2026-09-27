@@ -34,7 +34,26 @@ To remove it later, delete the copied file — neither `omarchy theme remove` no
 rm ~/.config/Typora/themes/nujabes.css
 ```
 
+#### Sublime Text
 
+The matching [Sublime Text](https://www.sublimetext.com/) color scheme covers
+code and Markdown; the UI theme colors its tabs, sidebar and panels.
+
+```bash
+cp sublime/Nujabes.sublime-{color-scheme,theme} ~/.config/sublime-text/Packages/User/
+```
+
+In *Preferences → Settings*, set:
+
+```json
+{
+  "color_scheme": "Nujabes.sublime-color-scheme",
+  "theme": "Nujabes.sublime-theme"
+}
+```
+
+Both files are optional and installed separately from the Omarchy theme. To
+remove them, select another scheme and theme, then delete the two copied files.
 
 ## Color Palette
 
@@ -88,6 +107,7 @@ The installer also leaves a copy at `~/.local/share/omarchy-nujabes-screensaver/
 | `screensaver/` | Artwork for the optional screensaver. |
 | `screensaver-engine/` | The renderer that draws it. Not used by the theme itself. |
 | `typora/` | Typora stylesheet. Installed separately, see above. |
+| `sublime/` | Sublime Text color scheme and UI theme. Installed separately, see above. |
 | `assets/` | Screenshots and the palette image. |
 
 

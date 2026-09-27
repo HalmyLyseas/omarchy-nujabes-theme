@@ -39,6 +39,7 @@ different routes:
 | Screensaver **artwork** | `screensaver/` | copied along with the theme | on theme switch |
 | Screensaver **renderer** | `screensaver-engine/` | `./screensaver-engine/install.sh`, by hand | once, opt-in |
 | Typora stylesheet | `typora/` | `cp` by hand | once, opt-in |
+| Sublime Text scheme and UI theme | `sublime/` | `cp` by hand | once, opt-in |
 
 The key mechanism: `omarchy-theme-set` does
 
@@ -270,6 +271,8 @@ the palette and no longer have the script, it renders grouped swatches
 and encodes with `cwebp`. The same script also syncs the `--nj-*` palette block
 in `typora/nujabes.css` from `colors.toml` — so on a clone without the script,
 a palette edit means updating that CSS block by hand too.
+The `sublime/` files also contain literal colors from `colors.toml`; keep both
+their variable blocks in sync when changing the palette.
 
 ### The screensaver recording
 

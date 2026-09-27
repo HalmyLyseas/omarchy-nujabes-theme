@@ -10,6 +10,7 @@ repository I wrote:
   `screensaver/tagline.txt` — typeset, hand-drawn, and text assets created for
   this project
 - `typora/nujabes.css` and `typora/sample.md`
+- `sublime/Nujabes.sublime-color-scheme` and `sublime/Nujabes.sublime-theme`
 - `colors.toml`, `icons.theme` and the documentation
 
 ## What it does not cover
