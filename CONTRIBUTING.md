@@ -4,7 +4,9 @@ The README is for people installing the theme; this document is the canonical
 contract for people changing it. `AGENTS.md` exists only as a discovery pointer
 to this file and must not contain a separate set of instructions.
 
-Everything here was verified on Omarchy 4.0.3-1 / Hyprland 0.56.2 / Qt 6.11.2.
+Targets Omarchy 4.5.0 and 4.0.5 (current and previous release); earlier 4.0.x
+builds are outside the tested contract. The non-disruptive checks below were run
+on Omarchy 4.5.0-3 / Hyprland 0.56.2 / Qt 6.12.0.
 
 ## Contribution contract
 
